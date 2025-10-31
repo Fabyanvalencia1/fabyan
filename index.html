@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS CREW Projected Hours - Mejorado</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow-x: auto;
+        }
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.1);
+            padding: 10px;
+            background: linear-gradient(to right, #3498db, #2980b9);
+            color: white;
+            border-radius: 5px;
+        }
+        h3 {
+            color: #2c3e50;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .form-row {
+            display: flex;
+            margin-bottom: 12px;
+            align-items: center;
+        }
+        .form-row label {
+            width: 220px;
+            font-weight: 600;
+            color: #444;
+        }
+        .form-row input, .form-row select {
+            padding: 8px 12px;
+            margin-right: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        button {
+            background-color: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            cursor: pointer;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 10px 8px 10px 0;
+            transition: background-color 0.2s, transform 0.1s;
+            font-weight: 500;
+        }
+        button:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        .primary-button {
+            background-color: #2ecc71;
+        }
+        .primary-button:hover {
+            background-color: #27ae60;
+        }
+        .danger-button {
+            background-color: #e74c3c;
+        }
+        .danger-button:hover {
+            background-color: #c0392b;
+        }
+        .info-button {
+            background-color: #9b59b6;
+        }
+        .info-button:hover {
+            background-color: #8e44ad;
+        }
+
+        /* Modal para administrar empleados */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 3% auto;
+            padding: 30px;
+            border-radius: 8px;
+            width: 85%;
+            max-width: 900px;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 15px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #aaa;
+            font-size: 32px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.2s;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #e74c3c;
+        }
+
+        .employee-list {
+            margin: 20px 0;
+            max-height: 400px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+        }
+
+        .employee-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fafafa;
+            transition: all 0.2s;
+        }
+
+        .employee-item:hover {
+            background-color: #f0f0f0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .employee-info {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .employee-info input {
+            flex: 1;
+            max-width: 300px;
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        .employee-info select {
+            padding: 6px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            min-width: 120px;
+        }
+
+        .employee-checkbox {
+            margin-right: 10px;
+            transform: scale(1.2);
+            cursor: pointer;
+        }
+
+        .employee-actions {
+            display: flex;
+            gap: 5px;
+        }
+
+        .btn-remove {
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .btn-remove:hover {
+            background-color: #c0392b;
+        }
+
+        .add-employee-form {
+            background-color: #e8f4f8;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .add-employee-form h3 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #eee;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 10px 8px;
+            text-align: center;
+        }
+        th {
+            background-color: #3498db;
+            color: white;
+            position: sticky;
+            top: 0;
+            font-weight: 500;
+        }
+        .warning {
+            background-color: #ffebe6;
+        }
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+        .total {
+            font-weight: bold;
+        }
+        .over-limit {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        .add-row {
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .row-number {
+            width: 30px;
+            text-align: center;
+            background-color: #f9f9f9;
+            font-weight: 500;
+        }
+        .control-buttons {
+            margin: 10px 0;
+        }
+        .hidden {
+            display: none;
+        }
+        .config-container {
+            margin-bottom: 20px;
+            border: 1px solid #eee;
+            padding: 15px;
+            border-radius: 4px;
+            background-color: #fafafa;
+        }
+        .time-input {
+            width: 85px;
+        }
+        .time-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .time-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 3px;
+        }
+        .time-row label {
+            font-size: 11px;
+            margin-right: 2px;
+            width: 40px;
+            text-align: right;
+        }
+        .day-code {
+            font-size: 11px;
+            padding: 2px;
+            margin-top: 3px;
+            width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+        }
+        .department-select {
+            width: 110px;
+        }
+        .employee-name {
+            width: 180px;
+        }
+        .table-container {
+            overflow-x: auto;
+            max-height: none;
+            overflow-y: visible;
+            box-shadow: 0 0 15px rgba(0,0,0,0.05);
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tbody tr:hover {
+            background-color: #f5f5f5;
+        }
+
+        /* Colores para departamentos */
+        .dept-plantacion {
+            background-color: #d4f5d8;
+        }
+        .dept-puller {
+            background-color: #f5ead4;
+        }
+        .dept-growing {
+            background-color: #d4e6f5;
+        }
+        .dept-mantenimiento {
+            background-color: #f5d4d4;
+        }
+
+        /* Estilos para el resumen */
+        .results-container {
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .summary-card {
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .summary-card h4 {
+            margin-top: 0;
+            color: #3498db;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+            margin-bottom: 10px;
+        }
+        .summary-value {
+            font-size: 18px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        /* Estilos para impresión */
+        @media print {
+            body {
+                font-size: 12px;
+                background: none;
+            }
+            .container {
+                box-shadow: none;
+                max-width: 100%;
+                padding: 0;
+            }
+            button, .add-row, .actions:not(.print-actions), .modal {
+                display: none !important;
+            }
+            table {
+                font-size: 10px;
+                page-break-inside: auto;
+            }
+            tr {
+                page-break-inside: avoid;
+                page-break-after: auto;
+            }
+            th {
+                background-color: #ddd !important;
+                color: black !important;
+            }
+            .print-header {
+                display: block !important;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+            .print-footer {
+                display: block !important;
+                text-align: center;
+                margin-top: 20px;
+                font-size: 10px;
+                color: #666;
+            }
+        }
+        .print-header, .print-footer {
+            display: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            color: white;
+        }
+
+        .badge-success {
+            background-color: #27ae60;
+        }
+
+        .badge-danger {
+            background-color: #e74c3c;
+        }
+
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>OASIS CREW - Projected Hours Calculator (Mejorado)</h1>
+
+        <div class="config-container">
+            <h3>Configuración</h3>
+            <div class="form-row">
+                <label>Límite de horas:</label>
+                <input type="number" id="hourLimit" value="45" min="0" step="0.5">
+            </div>
+            <div class="form-row">
+                <label>Tiempo de descanso (min):</label>
+                <input type="number" id="breakTime" value="30" min="0" step="5">
+            </div>
+            <div class="form-row">
+                <label>Fecha de inicio de semana:</label>
+                <input type="date" id="weekStartDate">
+            </div>
+        </div>
+
+        <div class="add-row">
+            <button id="manageEmployees" class="info-button">
+                <i class="fas fa-users-cog"></i> Administrar Empleados
+            </button>
+            <button id="addEmployee" class="primary-button">
+                <i class="fas fa-plus"></i> Agregar Empleado
+            </button>
+            <button id="removeEmployee" class="danger-button">
+                <i class="fas fa-trash"></i> Eliminar Último
+            </button>
+            <button id="clearAll" class="danger-button">
+                <i class="fas fa-broom"></i> Limpiar Todo
+            </button>
+            <button id="saveTemplate">
+                <i class="fas fa-save"></i> Guardar Plantilla
+            </button>
+            <button id="loadTemplate">
+                <i class="fas fa-folder-open"></i> Cargar Plantilla
+            </button>
+        </div>
+
+        <div class="table-container">
+            <table id="employeeTable">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Nombre del Empleado</th>
+                        <th style="display:none;">Departamento</th>
+                        <th>Domingo</th>
+                        <th>Lunes</th>
+                        <th>Martes</th>
+                        <th>Miércoles</th>
+                        <th>Jueves</th>
+                        <th>Viernes</th>
+                        <th>Sábado</th>
+                        <th>Total</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeRows">
+                    <!-- Aquí se añadirán las filas de empleados dinámicamente -->
+                </tbody>
+            </table>
+        </div>
+
+        <div class="actions">
+            <button id="calculateAll" class="primary-button">
+                <i class="fas fa-calculator"></i> Calcular Todos
+            </button>
+            <button id="printTable">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            <button id="exportTable">
+                <i class="fas fa-file-export"></i> Exportar a Excel
+            </button>
+            <button id="generatePDF" class="primary-button">
+                <i class="fas fa-file-pdf"></i> Generar PDF
+            </button>
+        </div>
+
+        <div id="results" class="hidden results-container">
+            <h3>Resumen General</h3>
+            <div class="summary-grid">
+                <div class="summary-card">
+                    <h4>Total de empleados</h4>
+                    <div class="summary-value" id="totalEmployees">0</div>
+                </div>
+                <div class="summary-card">
+                    <h4>Empleados que exceden el límite</h4>
+                    <div class="summary-value" id="exceedingEmployees">0</div>
+                </div>
+                <div class="summary-card">
+                    <h4>Total de horas proyectadas</h4>
+                    <div class="summary-value" id="totalHours">0</div>
+                </div>
+                <div class="summary-card">
+                    <h4>Promedio de horas por empleado</h4>
+                    <div class="summary-value" id="averageHours">0</div>
+                </div>
+            </div>
+
+            <h3>Resumen por Departamento</h3>
+            <div class="summary-grid" id="departmentSummary">
+                <!-- Aquí se generará dinámicamente el resumen por departamento -->
+            </div>
+        </div>
+
+        <!-- Elementos para impresión -->
+        <div class="print-header">
+            <h2>OASIS CREW - Weekly Hour Projection</h2>
+            <p>Period: <span id="printDateRange"></span></p>
+        </div>
+        <div class="print-footer">
+            <p>Informe generado el <span id="printGeneratedDate"></span></p>
+        </div>
+    </div>
+
+    <!-- Modal para administrar empleados -->
+    <div id="employeeModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Administrar Empleados Comunes</h2>
+                <span class="close">&times;</span>
+            </div>
+
+            <div class="add-employee-form">
+                <h3>Agregar Nuevo Empleado</h3>
+                <div class="form-group">
+                    <label>Nombre del Empleado:</label>
+                    <input type="text" id="newEmployeeName" placeholder="Nombre completo">
+                </div>
+                <div class="form-group">
+                    <label>Departamento:</label>
+                    <select id="newEmployeeDept">
+                        <option value="plantacion">Plantación</option>
+                        <option value="puller">Puller</option>
+                        <option value="growing">Growing</option>
+                        <option value="mantenimiento">Mantenimiento</option>
+                    </select>
+                </div>
+                <button id="addNewEmployee" class="primary-button">
+                    <i class="fas fa-plus"></i> Agregar a Lista
+                </button>
+            </div>
+
+            <div class="search-box">
+                <input type="text" id="searchEmployee" placeholder="Buscar empleado...">
+            </div>
+
+            <div class="employee-list" id="employeeListContainer">
+                <!-- Aquí se cargarán los empleados -->
+            </div>
+
+            <div class="modal-actions">
+                <div>
+                    <button id="selectAllEmployees" class="primary-button">Seleccionar Todos</button>
+                    <button id="deselectAllEmployees">Deseleccionar Todos</button>
+                </div>
+                <div>
+                    <button id="loadSelectedEmployees" class="primary-button">
+                        <i class="fas fa-check"></i> Cargar Seleccionados
+                    </button>
+                    <button id="deleteSelectedEmployees" class="danger-button">
+                        <i class="fas fa-trash-alt"></i> Eliminar Seleccionados
+                    </button>
+                    <button id="closeModal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agregar FontAwesome para iconos -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
+    <!-- Añadir jsPDF para generar PDFs correctamente -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.7.0/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="app.js"></script>
+</body>
+</html>

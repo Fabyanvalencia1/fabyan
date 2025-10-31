@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OASIS CREW - Calculadora de Horas</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div style="position: fixed; top: 20px; right: 20px; background: #2ecc71; color: white; padding: 10px 20px; border-radius: 8px; display: none; z-index: 9999;" id="notification"></div>
+    
+    <button onclick="toggleDarkMode()" style="position: fixed; top: 20px; left: 20px; width: 50px; height: 50px; border-radius: 50%; background: white; border: 2px solid #ddd; cursor: pointer; z-index: 1000;">
+        <i class="fas fa-moon" id="darkIcon"></i>
+    </button>
+
+    <div style="max-width: 100%; margin: 0 auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h1 style="text-align: center; background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 20px; border-radius: 8px; margin-bottom: 30px;">
+            <i class="fas fa-users"></i> OASIS CREW - Calculadora de Horas
+        </h1>
+
+        <!-- Configuración -->
+        <div style="background: #f5f5f5; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <h3><i class="fas fa-cog"></i> Configuración</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div>
+                    <label>Límite de horas:</label>
+                    <input type="number" id="hourLimit" value="45" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Descanso (min):</label>
+                    <input type="number" id="breakTime" value="30" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+                <div>
+                    <label>Fecha inicio:</label>
+                    <input type="date" id="weekStartDate" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px;">
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones -->
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px;">
+            <button onclick="addEmployee()" style="background: #2ecc71; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-user-plus"></i> Agregar Empleado
+            </button>
+            <button onclick="calculateAll()" style="background: #3498db; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-calculator"></i> Calcular
+            </button>
+            <button onclick="window.print()" style="background: #95a5a6; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-print"></i> Imprimir
+            </button>
+            <button onclick="clearAll()" style="background: #e74c3c; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer;">
+                <i class="fas fa-trash"></i> Limpiar
+            </button>
+        </div>
+
+        <!-- Tabla -->
+        <div style="overflow-x: auto;">
+            <table id="employeeTable" style="width: 100%; border-collapse: collapse;">
+                <thead>
+                    <tr style="background: #3498db; color: white;">
+                        <th style="padding: 12px; border: 1px solid #ddd;">#</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Nombre</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Departamento</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Dom</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Lun</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Mar</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Mié</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Jue</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Vie</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Sáb</th>
+                        <th style="padding: 12px; border: 1px solid #ddd;">Total</th>
+                    </tr>
+                </thead>
+                <tbody id="employeeRows"></tbody>
+            </table>
+        </div>
+
+        <!-- Resumen -->
+        <div id="results" style="margin-top: 30px; display: none;">
+            <h3><i class="fas fa-chart-bar"></i> Resumen</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                <div style="background: #ecf0f1; padding: 20px; border-radius: 8px; text-align: center;">
+                    <h4>Total Empleados</h4>
+                    <div id="totalEmployees" style="font-size: 32px; font-weight: bold; color: #3498db;">0</div>
+                </div>
+                <div style="background: #ecf0f1; padding: 20px; border-radius: 8px; text-align: center;">
+                    <h4>Exceden Límite</h4>
+                    <div id="exceedingEmployees" style="font-size: 32px; font-weight: bold; color: #e74c3c;">0</div>
+                </div>
+                <div style="background: #ecf0f1; padding: 20px; border-radius: 8px; text-align: center;">
+                    <h4>Total Horas</h4>
+                    <div id="totalHours" style="font-size: 32px; font-weight: bold; color: #2ecc71;">0</div>
+                </div>
+                <div style="background: #ecf0f1; padding: 20px; border-radius: 8px; text-align: center;">
+                    <h4>Promedio</h4>
+                    <div id="averageHours" style="font-size: 32px; font-weight: bold; color: #9b59b6;">0</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+    <script>
+        let employeeCount = 0;
+
+        // Inicializar fecha
+        document.getElementById('weekStartDate').valueAsDate = new Date();
+
+        function addEmployee() {
+            employeeCount++;
+            const tbody = document.getElementById('employeeRows');
+            const row = tbody.insertRow();
+            
+            row.innerHTML = `
+                <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${employeeCount}</td>
+                <td style="padding: 10px; border: 1px solid #ddd;"><input type="text" placeholder="Nombre" style="width: 100%; padding: 5px;"></td>
+                <td style="padding: 10px; border: 1px solid #ddd;">
+                    <select style="width: 100%; padding: 5px;">
+                        <option>Plantación</option>
+                        <option>Puller</option>
+                        <option>Growing</option>
+                        <option>Mantenimiento</option>
+                    </select>
+                </td>
+                ${['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'].map(day => `
+                    <td style="padding: 10px; border: 1px solid #ddd;">
+                        <input type="time" style="width: 100%; padding: 3px; margin-bottom: 3px;">
+                        <input type="time" style="width: 100%; padding: 3px;">
+                    </td>
+                `).join('')}
+                <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">0.00</td>
+            `;
+            
+            showNotification('Empleado agregado');
+        }
+
+        function calculateAll() {
+            const tbody = document.getElementById('employeeRows');
+            const rows = tbody.getElementsByTagName('tr');
+            const hourLimit = parseFloat(document.getElementById('hourLimit').value) || 45;
+            const breakTime = parseFloat(document.getElementById('breakTime').value) || 30;
+            
+            let totalHours = 0;
+            let exceeding = 0;
+
+            for (let row of rows) {
+                const timeInputs = row.querySelectorAll('input[type="time"]');
+                let rowTotal = 0;
+
+                for (let i = 0; i < timeInputs.length; i += 2) {
+                    const inTime = timeInputs[i].value;
+                    const outTime = timeInputs[i + 1].value;
+                    
+                    if (inTime && outTime) {
+                        const hours = calculateHours(inTime, outTime, breakTime);
+                        rowTotal += hours;
+                    }
+                }
+
+                const totalCell = row.cells[row.cells.length - 1];
+                totalCell.textContent = rowTotal.toFixed(2);
+                
+                if (rowTotal > hourLimit) {
+                    row.style.background = '#ffebee';
+                    totalCell.style.color = '#e74c3c';
+                    exceeding++;
+                } else {
+                    row.style.background = '';
+                    totalCell.style.color = '#2ecc71';
+                }
+
+                totalHours += rowTotal;
+            }
+
+            document.getElementById('totalEmployees').textContent = rows.length;
+            document.getElementById('exceedingEmployees').textContent = exceeding;
+            document.getElementById('totalHours').textContent = totalHours.toFixed(2);
+            document.getElementById('averageHours').textContent = rows.length > 0 ? (totalHours / rows.length).toFixed(2) : '0.00';
+            document.getElementById('results').style.display = 'block';
+            
+            showNotification('Cálculo completado');
+        }
+
+        function calculateHours(startTime, endTime, breakMinutes) {
+            const [startHour, startMin] = startTime.split(':').map(Number);
+            const [endHour, endMin] = endTime.split(':').map(Number);
+            
+            let startMinutes = startHour * 60 + startMin;
+            let endMinutes = endHour * 60 + endMin;
+            
+            if (endMinutes < startMinutes) {
+                endMinutes += 24 * 60;
+            }
+            
+            const totalMinutes = endMinutes - startMinutes - breakMinutes;
+            return Math.max(0, totalMinutes / 60);
+        }
+
+        function clearAll() {
+            if (confirm('¿Limpiar todos los datos?')) {
+                document.getElementById('employeeRows').innerHTML = '';
+                document.getElementById('results').style.display = 'none';
+                employeeCount = 0;
+                showNotification('Datos limpiados');
+            }
+        }
+
+        function toggleDarkMode() {
+            document.body.style.background = document.body.style.background === 'rgb(26, 26, 26)' ? '' : '#1a1a1a';
+            document.body.style.color = document.body.style.color === 'rgb(224, 224, 224)' ? '' : '#e0e0e0';
+        }
+
+        function showNotification(message) {
+            const notif = document.getElementById('notification');
+            notif.textContent = message;
+            notif.style.display = 'block';
+            setTimeout(() => notif.style.display = 'none', 3000);
+        }
+
+        // Agregar un empleado de ejemplo
+        addEmployee();
+    </script>
+
+    <style>
+        @media print {
+            button { display: none !important; }
+            body { background: white !important; color: black !important; }
+        }
+    </style>
+</body>
+</html>
